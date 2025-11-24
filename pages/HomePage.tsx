@@ -3,7 +3,6 @@ import { MOCK_USERS } from '../constants';
 import { useNavigate } from 'react-router-dom';
 import { Volume2, Star, Check, X, Send, Phone } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { socialLinks } from '../utils/socialLinks';
 
 // Telegram Icon Component for reuse
 const TelegramIcon = ({ size = 24 }) => (
@@ -177,11 +176,11 @@ export const HomePage: React.FC = () => {
                         <div className="bg-gray-50 p-4 rounded-xl space-y-3 border border-gray-100">
                              <div className="flex items-center">
                                 <Phone size={18} className="text-green-500 mr-3" />
-                                <span className="font-bold text-gray-800">WA: {socialLinks.whatsappSupport.replace('https://wa.me/', '+')}</span>
+                                <span className="font-bold text-gray-800">WA: +1 408 914 0908</span>
                              </div>
                              <div className="flex items-center">
                                 <Send size={18} className="text-blue-500 mr-3" />
-                                <span className="font-bold text-gray-800">TG: {socialLinks.telegramSupport.replace('https://t.me/', '@')}</span>
+                                <span className="font-bold text-gray-800">TG: @TrueLove_Official01</span>
                              </div>
                         </div>
 
