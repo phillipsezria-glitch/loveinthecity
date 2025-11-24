@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MOCK_USERS } from '../constants';
-import { ChevronLeft, Heart, Star, MapPin } from 'lucide-react';
+import { ChevronLeft, Heart, Star, MapPin, MessageCircle } from 'lucide-react';
 
 export const UserProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -11,7 +11,7 @@ export const UserProfilePage: React.FC = () => {
   if (!user) return <div>User not found</div>;
 
   return (
-    <div className="min-h-full bg-gray-50 text-gray-900 pb-6 font-sans">
+    <div className="min-h-full bg-gray-50 text-gray-900 pb-24 font-sans">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 bg-white sticky top-0 z-40 shadow-sm">
             <button onClick={() => navigate(-1)} className="p-1 rounded-full hover:bg-gray-100">
@@ -19,6 +19,17 @@ export const UserProfilePage: React.FC = () => {
             </button>
             <span className="font-bold text-lg">{user.name}</span>
             <div className="w-6"></div> {/* Spacer */}
+        </div>
+
+        {/* Sticky Reserve Button */}
+        <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white to-transparent pt-8 pb-4 px-4 z-30 max-w-md mx-auto">
+          <button
+            onClick={() => navigate('/messages')}
+            className="w-full bg-gradient-to-r from-primary to-pink-600 hover:from-pink-600 hover:to-primary text-white rounded-2xl py-4 font-bold shadow-2xl shadow-primary/40 active:scale-95 transition-all flex items-center justify-center space-x-2 group"
+          >
+            <MessageCircle size={22} className="group-hover:rotate-12 transition-transform" />
+            <span>Reserve Now</span>
+          </button>
         </div>
 
         {/* Info Block */}
