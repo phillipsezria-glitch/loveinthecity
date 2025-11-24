@@ -1,15 +1,157 @@
-import React from 'react';
-import { MessageCircle, Send } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MessageCircle, Send, Copy, Check } from 'lucide-react';
+import { MOCK_USERS } from '../constants';
 
 export const MessagesPage: React.FC = () => {
   const telegramUrl = 'https://t.me/loveinthecity';
   const whatsappUrl = 'https://wa.me/1234567890'; // Update with your WhatsApp number
+  
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    issue: 'reserve', // reserve, password, pin, funding, announcement, support
+    selectedProfile: '',
+    message: ''
+  });
+
+  const [copied, setCopied] = useState(false);
+
+  // Generate pre-filled message
+  const generateMessage = () => {
+    const issueText = {
+      reserve: 'I would like to reserve a date with',
+      password: 'I need help changing my login password',
+      pin: 'I need to reset my payment PIN',
+      funding: 'I have a question about funding details',
+      announcement: 'I would like to know about announcements',
+      support: 'I need general support'
+    };
+
+    const selectedUser = MOCK_USERS.find(u => u.id === formData.selectedProfile);
+    const baseMessage = `${issueText[formData.issue as keyof typeof issueText]}${selectedUser ? ` with ${selectedUser.name}` : ''}`;
+    
+    return `Hello! My name is ${formData.name || 'User'}. ${baseMessage}. ${formData.message ? `Additional details: ${formData.message}` : ''}`;
+  };
+
+  const message = generateMessage();
+
+  const copyToClipboard = () => {
+    const fullMessage = `📋 CUSTOMER INFO:\nName: ${formData.name || 'N/A'}\nPhone: ${formData.phone || 'N/A'}\n\n💬 MESSAGE:\n${message}`;
+    navigator.clipboard.writeText(fullMessage);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="min-h-full bg-gradient-to-b from-gray-50 to-white p-4 font-sans text-gray-900 pb-20">
       <div className="mb-8">
         <h1 className="text-2xl font-bold mb-1">Customer Care</h1>
-        <p className="text-sm text-gray-500">Connect with our team to reserve dates and get matched</p>
+        <p className="text-sm text-gray-500">Tell us what you need - we'll help you get matched!</p>
+      </div>
+
+      {/* Pre-fill Form Card */}
+      <div className="bg-white rounded-2xl p-5 mb-6 border border-gray-200 shadow-sm">
+        <h3 className="font-bold text-gray-900 mb-4 flex items-center">
+          <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mr-2">
+            <span className="text-primary font-bold">ℹ️</span>
+          </div>
+          Your Information
+        </h3>
+
+        {/* Name Input */}
+        <div className="mb-4">
+          <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Your Name</label>
+          <input
+            type="text"
+            placeholder="Enter your name"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:border-primary focus:bg-white focus:outline-none transition"
+          />
+        </div>
+
+        {/* Phone Input */}
+        <div className="mb-4">
+          <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Phone Number</label>
+          <input
+            type="tel"
+            placeholder="Your contact number"
+            value={formData.phone}
+            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:border-primary focus:bg-white focus:outline-none transition"
+          />
+        </div>
+
+        {/* Issue Type */}
+        <div className="mb-4">
+          <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">What do you need?</label>
+          <select
+            value={formData.issue}
+            onChange={(e) => setFormData({ ...formData, issue: e.target.value })}
+            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:border-primary focus:bg-white focus:outline-none transition"
+          >
+            <option value="reserve">Reserve a date</option>
+            <option value="password">Change password</option>
+            <option value="pin">Reset PIN</option>
+            <option value="funding">Funding details</option>
+            <option value="announcement">Announcements</option>
+            <option value="support">General support</option>
+          </select>
+        </div>
+
+        {/* Profile Selection (if reserving) */}
+        {formData.issue === 'reserve' && (
+          <div className="mb-4">
+            <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Which profile?</label>
+            <select
+              value={formData.selectedProfile}
+              onChange={(e) => setFormData({ ...formData, selectedProfile: e.target.value })}
+              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:border-primary focus:bg-white focus:outline-none transition"
+            >
+              <option value="">Select a profile...</option>
+              {MOCK_USERS.filter(u => u.id !== 'support').map(user => (
+                <option key={user.id} value={user.id}>
+                  {user.name}, {user.age} - {user.residence}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Additional Message */}
+        <div className="mb-4">
+          <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Additional Details (optional)</label>
+          <textarea
+            placeholder="Any other information..."
+            value={formData.message}
+            onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:border-primary focus:bg-white focus:outline-none transition resize-none h-20"
+          />
+        </div>
+
+        {/* Generated Message Preview */}
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4">
+          <p className="text-[11px] font-bold text-blue-900 uppercase mb-2">Preview Message:</p>
+          <p className="text-sm text-blue-800 leading-relaxed">{message}</p>
+        </div>
+
+        {/* Copy & Share Button */}
+        <button
+          onClick={copyToClipboard}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition flex items-center justify-center space-x-2 active:scale-95"
+        >
+          {copied ? (
+            <>
+              <Check size={18} />
+              <span>Copied! Ready to share</span>
+            </>
+          ) : (
+            <>
+              <Copy size={18} />
+              <span>Copy Message to Clipboard</span>
+            </>
+          )}
+        </button>
       </div>
 
       {/* Main Service Card */}
@@ -19,15 +161,15 @@ export const MessagesPage: React.FC = () => {
           <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-4 backdrop-blur-sm">
             <MessageCircle size={32} className="text-white" />
           </div>
-          <h2 className="text-2xl font-bold mb-2">Connect With Our Team</h2>
+          <h2 className="text-2xl font-bold mb-2">Share With Our Team</h2>
           <p className="text-white/90 text-sm leading-relaxed">
-            Our customer care specialists will match you with compatible partners and help arrange your dates. Available 24/7!
+            Copy your message above and paste it in the chat below. Our specialists will immediately know who you want to reserve and help you instantly!
           </p>
         </div>
       </div>
 
       {/* Contact Options */}
-      <h3 className="text-xs font-bold text-gray-400 mb-4 uppercase tracking-widest">Quick Connect</h3>
+      <h3 className="text-xs font-bold text-gray-400 mb-4 uppercase tracking-widest">Connect Now</h3>
       
       <div className="space-y-3 mb-8">
         {/* Telegram */}
@@ -44,7 +186,7 @@ export const MessagesPage: React.FC = () => {
           </div>
           <div className="flex-1">
             <h4 className="font-bold text-gray-900 mb-0.5">Telegram</h4>
-            <p className="text-xs text-gray-500">@loveinthecity</p>
+            <p className="text-xs text-gray-500">Paste message → Open chat</p>
           </div>
           <div className="text-blue-600 group-hover:text-blue-700 transition">
             <Send size={20} />
@@ -65,7 +207,7 @@ export const MessagesPage: React.FC = () => {
           </div>
           <div className="flex-1">
             <h4 className="font-bold text-gray-900 mb-0.5">WhatsApp</h4>
-            <p className="text-xs text-gray-500">Message us directly</p>
+            <p className="text-xs text-gray-500">Paste message → Send directly</p>
           </div>
           <div className="text-green-600 group-hover:text-green-700 transition">
             <Send size={20} />
@@ -74,14 +216,14 @@ export const MessagesPage: React.FC = () => {
       </div>
 
       {/* Info Section */}
-      <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
-        <h4 className="font-bold text-blue-900 mb-2 text-sm">What Our Team Does:</h4>
-        <ul className="text-xs text-blue-800 space-y-1">
-          <li>✓ Match you with compatible partners</li>
-          <li>✓ Arrange safe and secure dates</li>
-          <li>✓ Provide social media verification</li>
-          <li>✓ Assist with reservations & bookings</li>
-          <li>✓ Handle all service requests 24/7</li>
+      <div className="bg-green-50 border border-green-200 rounded-2xl p-4">
+        <h4 className="font-bold text-green-900 mb-2 text-sm">⚡ How It Works:</h4>
+        <ul className="text-xs text-green-800 space-y-1">
+          <li>✓ Fill in your details above</li>
+          <li>✓ Select the profile you're interested in</li>
+          <li>✓ Copy your pre-filled message</li>
+          <li>✓ Paste it to Telegram or WhatsApp</li>
+          <li>✓ Our team matches you instantly!</li>
         </ul>
       </div>
     </div>
