@@ -1,6 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { BottomNav } from './components/BottomNav';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { preloadResources, setupImageLazyLoading } from './utils/lazyLoad';
 import { initializeDeepLinks, getDeepLinkManager } from './utils/deepLinks';
 import { storage } from './utils/localStorage';
@@ -179,8 +180,10 @@ export default function App() {
   }, []);
 
   return (
-    <HashRouter>
-      <DeepLinkRouter />
-    </HashRouter>
+    <ErrorBoundary>
+      <HashRouter>
+        <DeepLinkRouter />
+      </HashRouter>
+    </ErrorBoundary>
   );
 }
