@@ -63,7 +63,10 @@ export const UserProfilePage: React.FC = () => {
                         {[...Array(user.chargeRange || 5)].map((_, i) => <Star key={i} size={14} fill="currentColor" />)}
                     </div>
                 </div>
-                <button className="bg-black text-white px-8 py-2.5 rounded-full text-sm font-bold shadow-lg hover:bg-gray-800 transition">
+                <button 
+                  onClick={() => navigate('/messages')}
+                  className="bg-black text-white px-8 py-2.5 rounded-full text-sm font-bold shadow-lg hover:bg-gray-800 transition active:scale-95"
+                >
                     Reserve Now
                 </button>
             </div>
