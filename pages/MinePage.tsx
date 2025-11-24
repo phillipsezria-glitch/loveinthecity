@@ -1,20 +1,44 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MOCK_USERS } from '../constants';
-import { Phone, RefreshCw, Video, Lock, ShieldCheck, FileText, Bell, LogOut, ChevronRight } from 'lucide-react';
+import { Phone, RefreshCw, Video, Lock, ShieldCheck, FileText, Bell, LogOut, ChevronRight, MapPin, Calendar, User } from 'lucide-react';
+import { generateTelegramLink, generateServiceMessage } from '../utils/contactLinks';
+import { storage } from '../utils/localStorage';
 
 interface MinePageProps {
     onLogout: () => void;
 }
 
+interface UserProfile {
+  name: string;
+  age: number;
+  phone: string;
+  city: string;
+  state: string;
+  password: string;
+  signedUpAt: string;
+  userId?: string;
+}
+
 export const MinePage: React.FC<MinePageProps> = ({ onLogout }) => {
   const navigate = useNavigate();
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  
+  useEffect(() => {
+    // Load user profile from improved storage
+    const profile = storage.get<UserProfile>('user_profile');
+    if (profile) {
+      setUserProfile(profile);
+      console.log('👤 User profile loaded:', profile.name);
+    }
+  }, []);
+
   // Using a mock user for the profile
   const me = {
       id: 'me',
       creditScore: 80,
       points: 0.00,
-      phone: '123456123456'
+      phone: userProfile?.phone || '123456123456'
   };
 
   return (
@@ -26,18 +50,16 @@ export const MinePage: React.FC<MinePageProps> = ({ onLogout }) => {
                     <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop" alt="Me" className="w-full h-full object-cover rounded-full" />
                  </div>
                  <div className="flex-1">
-                     <div className="text-xl font-bold text-gray-900 mb-1">{me.phone}</div>
-                     <div className="flex items-center space-x-2">
-                        <span className="text-xs font-medium text-white bg-primary px-2 py-0.5 rounded-full">VIP Member</span>
-                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">Score: {me.creditScore}</span>
-                     </div>
+                     <div className="text-xl font-bold text-gray-900 mb-1">{userProfile?.name || 'Guest'}</div>
+                     <div className="text-sm text-gray-600">ID: {userProfile?.userId || 'N/A'}</div>
                  </div>
-                 <div className="bg-[#25D366] rounded-full p-2 text-white shadow-md">
+                 <button type="button" onClick={() => navigate('/messages')} className="bg-[#25D366] rounded-full p-2 text-white shadow-md cursor-pointer hover:opacity-80 transition">
                      <Phone size={20} />
-                 </div>
+                 </button>
              </div>
         </div>
 
+        {/* User Details Section - Removed */}
         {/* Content Container */}
         <div className="px-4 mt-6">
             {/* Activity Points */}
@@ -49,7 +71,7 @@ export const MinePage: React.FC<MinePageProps> = ({ onLogout }) => {
                         <span className="text-xs text-gray-400 uppercase tracking-wider font-medium">Points Balance</span>
                         <div className="text-4xl font-bold mt-1">{me.points.toFixed(2)}</div>
                     </div>
-                    <button className="bg-white/20 hover:bg-white/30 transition text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center">
+                    <button type="button" onClick={() => navigate('/messages')} className="bg-white/20 hover:bg-white/30 transition text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center">
                         Redeem <ChevronRight size={12} className="ml-1" />
                     </button>
                 </div>
@@ -59,28 +81,30 @@ export const MinePage: React.FC<MinePageProps> = ({ onLogout }) => {
             <h3 className="text-gray-900 font-bold mb-3 ml-1">Services</h3>
             <div className="bg-white rounded-2xl p-4 grid grid-cols-3 gap-y-6 shadow-soft border border-gray-100 mb-6">
                 {[
-                    { icon: Video, label: 'Private Videos', color: 'text-pink-500', bg: 'bg-pink-50' },
-                    { icon: Lock, label: 'Login Password', color: 'text-blue-500', bg: 'bg-blue-50' },
-                    { icon: ShieldCheck, label: 'Payment PIN', color: 'text-purple-500', bg: 'bg-purple-50' },
-                    { icon: FileText, label: 'Funding Details', color: 'text-orange-500', bg: 'bg-orange-50' },
-                    { icon: Bell, label: 'Announcements', color: 'text-yellow-500', bg: 'bg-yellow-50' },
-                    { icon: Phone, label: 'Support 24/7', color: 'text-green-500', bg: 'bg-green-50' },
+                    { icon: Video, label: 'Private Videos', color: 'text-pink-500', bg: 'bg-pink-50', service: 'support' },
+                    { icon: Lock, label: 'Login Password', color: 'text-blue-500', bg: 'bg-blue-50', service: 'password' },
+                    { icon: ShieldCheck, label: 'Payment PIN', color: 'text-purple-500', bg: 'bg-purple-50', service: 'pin' },
+                    { icon: FileText, label: 'Funding Details', color: 'text-orange-500', bg: 'bg-orange-50', service: 'funding' },
+                    { icon: Bell, label: 'Announcements', color: 'text-yellow-500', bg: 'bg-yellow-50', service: 'announcement' },
+                    { icon: Phone, label: 'Support 24/7', color: 'text-green-500', bg: 'bg-green-50', service: 'support' },
                 ].map((item, i) => (
-                    <button 
+                    <a 
                         key={i} 
-                        onClick={() => navigate('/messages')}
+                        href={generateTelegramLink(generateServiceMessage(item.service))}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="flex flex-col items-center justify-center space-y-2 cursor-pointer group"
                     >
                         <div className={`w-12 h-12 rounded-xl ${item.bg} flex items-center justify-center transition-transform group-active:scale-95 hover:shadow-md`}>
                             <item.icon size={24} className={item.color} />
                         </div>
                         <span className="text-[11px] font-medium text-gray-600 text-center">{item.label}</span>
-                    </button>
+                    </a>
                 ))}
             </div>
 
             {/* Logout */}
-            <button onClick={onLogout} className="w-full bg-white border border-gray-200 text-red-500 py-3.5 rounded-xl font-bold shadow-sm hover:bg-red-50 transition mb-6">
+            <button type="button" onClick={onLogout} className="w-full bg-white border border-gray-200 text-red-500 py-3.5 rounded-xl font-bold shadow-sm hover:bg-red-50 transition mb-6">
                 Log Out
             </button>
         </div>

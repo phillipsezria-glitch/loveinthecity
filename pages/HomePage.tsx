@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { MOCK_USERS } from '../constants';
 import { useNavigate } from 'react-router-dom';
-import { Volume2, Star, Check, X, Phone, Send } from 'lucide-react';
+import { Volume2, Star, Check, X, Send, Phone } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
-// Whatsapp Icon Component for reuse
-const WhatsAppIcon = ({ size = 24 }) => (
-  <div className={`bg-[#25D366] rounded-full p-1 flex items-center justify-center shadow-md`} style={{ width: size, height: size }}>
-    <Phone className="text-white fill-current" size={size * 0.6} />
+// Telegram Icon Component for reuse
+const TelegramIcon = ({ size = 24 }) => (
+  <div className={`bg-blue-600 rounded-full p-1 flex items-center justify-center shadow-md`} style={{ width: size, height: size }}>
+    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295-.41 0-.34-.145-.477-.477l-2.09-6.881c-.135-.43-.033-.662.352-.662l9.155-3.527c.41-.126.647.104.535.617z" />
+    </svg>
   </div>
 );
 
@@ -36,8 +38,16 @@ export const HomePage: React.FC = () => {
     <div className="min-h-full bg-gray-50 text-gray-900 pb-4 font-sans">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-white sticky top-0 z-40 shadow-sm">
-        <h1 className="text-2xl font-bold text-primary tracking-tight">Love in the City</h1>
-        <WhatsAppIcon size={32} />
+        <h1 className="text-2xl font-bold text-primary tracking-tight">Find Love Now</h1>
+        <button 
+          type="button"
+          onClick={() => navigate('/messages')}
+          className="bg-blue-600 rounded-full p-2 w-10 h-10 flex items-center justify-center shadow-md hover:opacity-80 transition"
+        >
+          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295-.41 0-.34-.145-.477-.477l-2.09-6.881c-.135-.43-.033-.662.352-.662l9.155-3.527c.41-.126.647.104.535.617z" />
+          </svg>
+        </button>
       </div>
 
       {/* Hero Banner */}
@@ -46,6 +56,7 @@ export const HomePage: React.FC = () => {
             src="https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=800&auto=format&fit=crop" 
             alt="Banner" 
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
         <div className="absolute bottom-4 left-4 right-4">
@@ -65,26 +76,6 @@ export const HomePage: React.FC = () => {
       </div>
 
       {/* Customer Care CTA */}
-      <div className="mx-4 mb-6">
-        <button
-          onClick={() => navigate('/messages')}
-          className="w-full bg-gradient-to-r from-primary to-pink-600 hover:from-pink-600 hover:to-primary text-white rounded-2xl p-5 shadow-xl shadow-primary/30 active:scale-95 transition-all relative overflow-hidden group"
-        >
-          <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          <div className="relative z-10 flex items-center justify-center space-x-3">
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-              <Send size={20} className="text-white" />
-            </div>
-            <div className="text-left">
-              <p className="font-bold text-sm">💬 Need Help?</p>
-              <p className="text-xs opacity-90">Contact Customer Care - Match with a Partner</p>
-            </div>
-            <div className="flex-1"></div>
-            <div className="text-xl font-bold">→</div>
-          </div>
-        </button>
-      </div>
-
       {/* High-end Zone */}
       <div className="mb-6 pl-4">
         <div className="flex items-center mb-3">
@@ -95,7 +86,16 @@ export const HomePage: React.FC = () => {
             {highEndUsers.map(user => (
                 <div key={user.id} className="flex-shrink-0 w-24 relative group cursor-pointer" onClick={() => navigate(`/user/${user.id}`)}>
                     <div className="w-24 h-24 rounded-full overflow-hidden relative border-2 border-transparent group-hover:border-primary transition-all shadow-md">
-                        <img src={user.images[0]} alt={user.name} className="w-full h-full object-cover" />
+                        <img 
+                            src={user.images[0]} 
+                            alt={user.name} 
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=ff6b6b&color=fff&size=200&font-size=0.5`;
+                            }}
+                        />
                     </div>
                     <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 bg-primary text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-sm">
                         Verified
@@ -117,7 +117,7 @@ export const HomePage: React.FC = () => {
                 <div key={user.id} className="bg-white rounded-2xl p-3 flex shadow-soft active:scale-98 transition-transform border border-gray-100 cursor-pointer" onClick={() => navigate(`/user/${user.id}`)}>
                     {/* Image */}
                     <div className="w-24 h-28 flex-shrink-0 relative mr-3">
-                        <img src={user.images[0]} alt={user.name} className="w-full h-full object-cover rounded-xl" />
+                        <img src={user.images[0]} alt={user.name} className="w-full h-full object-cover rounded-xl" loading="lazy" />
                         <div className="absolute top-1 left-1 bg-black/50 backdrop-blur text-white text-[8px] font-bold px-1.5 py-0.5 rounded">New</div>
                     </div>
 

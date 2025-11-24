@@ -33,15 +33,6 @@ export interface Conversation {
   lastMessage: Message;
 }
 
-export interface CommunityPost {
-  id: string;
-  title: string;
-  content: string;
-  image: string;
-  timestamp: string;
-  likes: number;
-}
-
 export interface Hotel {
   id: string;
   name: string;

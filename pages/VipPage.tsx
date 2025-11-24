@@ -52,7 +52,8 @@ export const VipPage: React.FC = () => {
       {/* Header */}
       <div className="sticky top-0 z-50 bg-white shadow-sm p-4 flex items-center">
         <button 
-            onClick={() => navigate(-1)} 
+            type="button"
+            onClick={() => navigate(-1)}
             className="p-1 -ml-1 rounded-full hover:bg-gray-100"
         >
             <ChevronLeft size={24} className="text-gray-900" />

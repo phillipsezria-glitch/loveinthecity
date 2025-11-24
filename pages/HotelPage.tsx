@@ -1,16 +1,18 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PARTNER_HOTELS } from '../constants';
 import { ClipboardList, Phone, Star } from 'lucide-react';
 
 export const HotelPage: React.FC = () => {
+  const navigate = useNavigate();
   return (
     <div className="min-h-full bg-gray-50 pb-4 text-gray-900 font-sans">
         {/* Header Icons */}
         <div className="flex justify-between items-center px-4 py-3 bg-white sticky top-0 z-40 shadow-sm">
             <h1 className="font-bold text-xl">Hotel Partners</h1>
-            <div className="bg-[#25D366] rounded-full p-2 w-9 h-9 flex items-center justify-center shadow-md">
+            <button type="button" onClick={() => navigate('/messages')} className="bg-[#25D366] rounded-full p-2 w-9 h-9 flex items-center justify-center shadow-md hover:opacity-80 transition">
                 <Phone size={18} className="text-white fill-current" />
-            </div>
+            </button>
         </div>
 
         {/* Main Banner */}

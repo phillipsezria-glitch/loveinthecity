@@ -11,15 +11,16 @@ export const BottomNav: React.FC = () => {
     { path: '/community', icon: MessageCircle, label: 'Community' }, 
     { path: '/choose', icon: Heart, label: 'Choose' },
     { path: '/hotel', icon: Building2, label: 'Hotel' },
-    { path: '/mine', icon: User, label: 'Mine' },
+    { path: '/mine', icon: User, label: 'Profile' },
   ];
 
   return (
-    <nav className="h-16 bg-white border-t border-gray-100 flex items-center justify-around px-2 z-50 shadow-lg pb-safe">
+    <nav className="h-16 bg-white border-t border-gray-100 flex items-center justify-around px-2 z-40 shadow-lg pb-safe">
       {navItems.map((item) => {
         const isActive = location.pathname === item.path;
         return (
           <button
+            type="button"
             key={item.path}
             onClick={() => navigate(item.path)}
             className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-300 ${

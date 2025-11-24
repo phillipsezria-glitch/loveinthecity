@@ -1,22 +1,57 @@
 import React, { useState, useEffect } from 'react';
-import { MessageCircle, Send, Copy, Check } from 'lucide-react';
+import { MessageCircle, Send, Copy, Check, Zap, Clock, Shield, MessageSquare, ChevronRight, Heart, Sparkles, AlertCircle, HelpCircle, Lock, ChevronLeft } from 'lucide-react';
 import { MOCK_USERS } from '../constants';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { storage } from '../utils/localStorage';
+
+interface UserProfile {
+  name: string;
+  age: number;
+  phone: string;
+  signedUpAt: string;
+}
 
 export const MessagesPage: React.FC = () => {
-  const telegramUrl = 'https://t.me/loveinthecity';
-  const whatsappUrl = 'https://wa.me/1234567890'; // Update with your WhatsApp number
+  const navigate = useNavigate();
+  const telegramUrl = 'https://t.me/findlovenow';
+  const [searchParams] = useSearchParams();
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    issue: 'reserve', // reserve, password, pin, funding, announcement, support
+    issue: 'reserve',
     selectedProfile: '',
     message: ''
   });
 
   const [copied, setCopied] = useState(false);
+  const [showQuickActions, setShowQuickActions] = useState(true);
 
-  // Generate pre-filled message
+  // Load user profile data from storage on component mount
+  useEffect(() => {
+    const profile = storage.get<UserProfile>('user_profile');
+    if (profile) {
+      setUserProfile(profile);
+      setFormData(prev => ({
+        ...prev,
+        name: profile.name,
+        phone: profile.phone
+      }));
+    }
+
+    // Check if coming from a partner profile (partner ID in URL params)
+    const partnerId = searchParams.get('partnerId');
+    if (partnerId) {
+      setFormData(prev => ({
+        ...prev,
+        selectedProfile: partnerId,
+        issue: 'reserve'
+      }));
+      setShowQuickActions(false);
+    }
+  }, [searchParams]);
+
   const generateMessage = () => {
     const issueText = {
       reserve: 'I would like to reserve a date with',
@@ -28,7 +63,7 @@ export const MessagesPage: React.FC = () => {
     };
 
     const selectedUser = MOCK_USERS.find(u => u.id === formData.selectedProfile);
-    const baseMessage = `${issueText[formData.issue as keyof typeof issueText]}${selectedUser ? ` with ${selectedUser.name}` : ''}`;
+    const baseMessage = `${issueText[formData.issue as keyof typeof issueText]}${selectedUser ? ` with ${selectedUser.name}, ${selectedUser.age} years old` : ''}`;
     
     return `Hello! My name is ${formData.name || 'User'}. ${baseMessage}. ${formData.message ? `Additional details: ${formData.message}` : ''}`;
   };
@@ -36,82 +71,176 @@ export const MessagesPage: React.FC = () => {
   const message = generateMessage();
 
   const copyToClipboard = () => {
-    const fullMessage = `📋 CUSTOMER INFO:\nName: ${formData.name || 'N/A'}\nPhone: ${formData.phone || 'N/A'}\n\n💬 MESSAGE:\n${message}`;
+    const selectedUser = MOCK_USERS.find(u => u.id === formData.selectedProfile);
+    const fullMessage = `📋 CUSTOMER INFO:\nName: ${formData.name || 'N/A'}\nAge: ${userProfile?.age || 'N/A'}\nPhone: ${formData.phone || 'N/A'}\n${selectedUser ? `\n💑 PARTNER INTEREST:\nName: ${selectedUser.name}\nAge: ${selectedUser.age}\nLocation: ${selectedUser.residence}\n` : ''}\n💬 MESSAGE:\n${message}`;
     navigator.clipboard.writeText(fullMessage);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    // Open Telegram after a brief delay to ensure copy completes
+    setTimeout(() => {
+      window.open(telegramUrl, '_blank');
+    }, 300);
+  };
+
+  const handleQuickAction = (type: string) => {
+    setFormData(prev => ({ ...prev, issue: type }));
+    setShowQuickActions(false);
+    setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 100);
   };
 
   return (
-    <div className="min-h-full bg-gradient-to-b from-gray-50 to-white p-4 font-sans text-gray-900 pb-20">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-1">Customer Care</h1>
-        <p className="text-sm text-gray-500">Tell us what you need - we'll help you get matched!</p>
+    <div className="min-h-full bg-gradient-to-b from-slate-50 via-purple-50 to-white p-4 font-sans text-gray-900 pb-20">
+      {/* Header with Back Button */}
+      <div className="flex items-center justify-between mb-6">
+        <button 
+          type="button"
+          onClick={() => navigate(-1)}
+          className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+        >
+          <ChevronLeft size={24} className="text-gray-700" />
+        </button>
+        <div className="text-center flex-1">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-xs font-bold mb-2">
+            <Sparkles size={14} />
+            24/7 Support
+          </div>
+        </div>
+        <div className="w-10"></div> {/* Spacer for centering */}
       </div>
 
-      {/* Pre-fill Form Card */}
-      <div className="bg-white rounded-2xl p-5 mb-6 border border-gray-200 shadow-sm">
-        <h3 className="font-bold text-gray-900 mb-4 flex items-center">
-          <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mr-2">
-            <span className="text-primary font-bold">ℹ️</span>
+      {/* Premium Header */}
+      <div className="mb-8 text-center">
+        <h1 className="text-4xl font-black bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent mb-2">
+          Find Love Now Support
+        </h1>
+        <p className="text-gray-600 text-base font-medium">Get instant help on anything</p>
+      </div>
+
+      {/* Quick Actions Grid */}
+      {showQuickActions && (
+        <div className="mb-10 grid grid-cols-1 gap-3">
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1 mb-1">What can we help with?</p>
+          
+          <button
+            onClick={() => handleQuickAction('reserve')}
+            className="group flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-200 hover:border-pink-400 hover:shadow-xl hover:bg-pink-50/30 active:scale-95 transition-all duration-200"
+          >
+            <div className="w-12 h-12 bg-gradient-to-br from-pink-100 to-rose-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition">
+              <Heart size={24} className="text-pink-600" fill="currentColor" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="font-bold text-gray-900">Make a Reservation</p>
+              <p className="text-xs text-gray-500">Book a date with someone</p>
+            </div>
+            <ChevronRight size={20} className="text-gray-300 group-hover:text-pink-400 group-hover:translate-x-1 transition" />
+          </button>
+
+          <button
+            onClick={() => handleQuickAction('password')}
+            className="group flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-200 hover:border-blue-400 hover:shadow-xl hover:bg-blue-50/30 active:scale-95 transition-all duration-200"
+          >
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition">
+              <Lock size={24} className="text-blue-600" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="font-bold text-gray-900">Account Security</p>
+              <p className="text-xs text-gray-500">Change password or reset PIN</p>
+            </div>
+            <ChevronRight size={20} className="text-gray-300 group-hover:text-blue-400 group-hover:translate-x-1 transition" />
+          </button>
+
+          <button
+            onClick={() => handleQuickAction('support')}
+            className="group flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-200 hover:border-purple-400 hover:shadow-xl hover:bg-purple-50/30 active:scale-95 transition-all duration-200"
+          >
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition">
+              <MessageCircle size={24} className="text-purple-600" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="font-bold text-gray-900">General Support</p>
+              <p className="text-xs text-gray-500">Any other questions</p>
+            </div>
+            <ChevronRight size={20} className="text-gray-300 group-hover:text-purple-400 group-hover:translate-x-1 transition" />
+          </button>
+        </div>
+      )}
+
+      {/* Service Info Banner */}
+      <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 text-white rounded-2xl p-5 mb-8 shadow-xl border border-white/10 backdrop-blur-sm">
+        <div className="flex items-start gap-3">
+          <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+            <Zap size={22} className="flex-shrink-0" />
           </div>
-          Your Information
+          <div>
+            <h3 className="font-black mb-1 text-lg">Lightning Response Time</h3>
+            <p className="text-sm text-white/90">Our support team replies within minutes via Telegram</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Form Section */}
+      <div className="bg-white rounded-3xl p-7 mb-6 border border-gray-200 shadow-sm">
+        <h3 className="font-black text-xl text-gray-900 mb-6 flex items-center">
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center mr-3">
+            <MessageSquare size={22} className="text-white" />
+          </div>
+          Send Your Request
         </h3>
 
         {/* Name Input */}
-        <div className="mb-4">
-          <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Your Name</label>
+        <div className="mb-5">
+          <label className="text-xs font-bold text-gray-600 uppercase mb-2 block tracking-wider">Your Name</label>
           <input
             type="text"
-            placeholder="Enter your name"
+            placeholder="Enter your full name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:border-primary focus:bg-white focus:outline-none transition"
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:border-purple-500 focus:bg-white focus:outline-none transition font-medium"
           />
         </div>
 
         {/* Phone Input */}
-        <div className="mb-4">
-          <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Phone Number</label>
+        <div className="mb-5">
+          <label className="text-xs font-bold text-gray-600 uppercase mb-2 block tracking-wider">Phone Number</label>
           <input
             type="tel"
             placeholder="Your contact number"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:border-primary focus:bg-white focus:outline-none transition"
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:border-purple-500 focus:bg-white focus:outline-none transition font-medium"
           />
         </div>
 
         {/* Issue Type */}
-        <div className="mb-4">
-          <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">What do you need?</label>
+        <div className="mb-5">
+          <label className="text-xs font-bold text-gray-600 uppercase mb-2 block tracking-wider">Category</label>
           <select
             value={formData.issue}
             onChange={(e) => setFormData({ ...formData, issue: e.target.value })}
-            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:border-primary focus:bg-white focus:outline-none transition"
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:border-purple-500 focus:bg-white focus:outline-none transition font-medium"
           >
-            <option value="reserve">Reserve a date</option>
-            <option value="password">Change password</option>
-            <option value="pin">Reset PIN</option>
-            <option value="funding">Funding details</option>
-            <option value="announcement">Announcements</option>
-            <option value="support">General support</option>
+            <option value="reserve">📅 Make a Reservation</option>
+            <option value="password">🔐 Change Password</option>
+            <option value="pin">🔑 Reset PIN</option>
+            <option value="funding">💰 Funding Details</option>
+            <option value="announcement">📢 Announcements</option>
+            <option value="support">❓ General Support</option>
           </select>
         </div>
 
         {/* Profile Selection (if reserving) */}
         {formData.issue === 'reserve' && (
-          <div className="mb-4">
-            <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Which profile?</label>
+          <div className="mb-5 p-4 bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl border border-pink-200">
+            <label className="text-xs font-bold text-gray-700 uppercase mb-2 block tracking-wider">Select Profile</label>
             <select
               value={formData.selectedProfile}
               onChange={(e) => setFormData({ ...formData, selectedProfile: e.target.value })}
-              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:border-primary focus:bg-white focus:outline-none transition"
+              className="w-full px-4 py-3 bg-white border border-pink-200 rounded-lg text-sm focus:border-pink-500 focus:outline-none transition font-medium"
             >
-              <option value="">Select a profile...</option>
+              <option value="">🔍 Choose a profile...</option>
               {MOCK_USERS.filter(u => u.id !== 'support').map(user => (
                 <option key={user.id} value={user.id}>
-                  {user.name}, {user.age} - {user.residence}
+                  ❤️ {user.name}, {user.age} - {user.residence}
                 </option>
               ))}
             </select>
@@ -119,112 +248,122 @@ export const MessagesPage: React.FC = () => {
         )}
 
         {/* Additional Message */}
-        <div className="mb-4">
-          <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Additional Details (optional)</label>
+        <div className="mb-5">
+          <label className="text-xs font-bold text-gray-600 uppercase mb-2 block tracking-wider">Message (Optional)</label>
           <textarea
-            placeholder="Any other information..."
+            placeholder="Any additional details..."
             value={formData.message}
             onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:border-primary focus:bg-white focus:outline-none transition resize-none h-20"
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:border-purple-500 focus:bg-white focus:outline-none transition resize-none h-24 font-medium"
           />
         </div>
 
         {/* Generated Message Preview */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4">
-          <p className="text-[11px] font-bold text-blue-900 uppercase mb-2">Preview Message:</p>
-          <p className="text-sm text-blue-800 leading-relaxed">{message}</p>
+        <div className="bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4 mb-6">
+          <p className="text-[11px] font-black text-purple-900 uppercase mb-3 tracking-wider flex items-center gap-2">
+            <Sparkles size={14} />
+            Preview Message
+          </p>
+          <p className="text-sm text-gray-700 leading-relaxed font-medium">{message}</p>
         </div>
 
-        {/* Copy & Share Button */}
+        {/* Merged Copy & Send Button */}
         <button
+          type="button"
           onClick={copyToClipboard}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition flex items-center justify-center space-x-2 active:scale-95"
+          className="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:shadow-2xl text-white py-4 rounded-xl font-bold transition-all flex items-center justify-center space-x-3 active:scale-95 shadow-lg group"
         >
           {copied ? (
             <>
-              <Check size={18} />
-              <span>Copied! Ready to share</span>
+              <Check size={22} />
+              <div className="text-left">
+                <div className="text-sm font-black">Copied & Opening!</div>
+                <div className="text-xs font-medium opacity-90">Paste in Telegram...</div>
+              </div>
             </>
           ) : (
             <>
-              <Copy size={18} />
-              <span>Copy Message to Clipboard</span>
+              <Copy size={22} />
+              <div className="text-left">
+                <div className="text-sm font-black">Copy & Open Telegram</div>
+                <div className="text-xs font-medium opacity-90">One-tap messaging</div>
+              </div>
+              <Send size={20} className="ml-auto group-hover:translate-x-1 transition" />
             </>
           )}
         </button>
       </div>
 
-      {/* Main Service Card */}
-      <div className="bg-gradient-to-br from-primary to-pink-600 text-white rounded-3xl p-8 mb-8 shadow-lg relative overflow-hidden">
-        <div className="absolute -top-20 -right-20 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-        <div className="relative z-10">
-          <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-4 backdrop-blur-sm">
-            <MessageCircle size={32} className="text-white" />
+      {/* Benefits Section */}
+      <div className="space-y-3 mb-10">
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Why Choose Telegram?</p>
+        
+        <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-200 hover:border-yellow-300 hover:shadow-md transition">
+          <div className="p-2.5 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-lg flex-shrink-0">
+            <Zap size={20} className="text-yellow-600" />
           </div>
-          <h2 className="text-2xl font-bold mb-2">Share With Our Team</h2>
-          <p className="text-white/90 text-sm leading-relaxed">
-            Copy your message above and paste it in the chat below. Our specialists will immediately know who you want to reserve and help you instantly!
-          </p>
+          <div>
+            <p className="font-bold text-sm text-gray-900">Instant Responses</p>
+            <p className="text-xs text-gray-600 mt-0.5">We reply within minutes, not hours</p>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-200 hover:border-green-300 hover:shadow-md transition">
+          <div className="p-2.5 bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg flex-shrink-0">
+            <Shield size={20} className="text-green-600" />
+          </div>
+          <div>
+            <p className="font-bold text-sm text-gray-900">100% Secure</p>
+            <p className="text-xs text-gray-600 mt-0.5">End-to-end encrypted conversations</p>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition">
+          <div className="p-2.5 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-lg flex-shrink-0">
+            <MessageCircle size={20} className="text-blue-600" />
+          </div>
+          <div>
+            <p className="font-bold text-sm text-gray-900">Direct Contact</p>
+            <p className="text-xs text-gray-600 mt-0.5">Chat directly with our support team</p>
+          </div>
         </div>
       </div>
 
-      {/* Contact Options */}
-      <h3 className="text-xs font-bold text-gray-400 mb-4 uppercase tracking-widest">Connect Now</h3>
-      
-      <div className="space-y-3 mb-8">
-        {/* Telegram */}
-        <a
-          href={telegramUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center p-5 bg-white rounded-2xl border border-gray-200 hover:border-blue-400 hover:shadow-lg active:scale-95 transition-all shadow-sm group cursor-pointer"
-        >
-          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4 group-hover:bg-blue-200 transition">
-            <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295-.41 0-.34-.145-.477-.477l-2.09-6.881c-.135-.43-.033-.662.352-.662l9.155-3.527c.41-.126.647.104.535.617z" />
-            </svg>
+      {/* FAQ Section */}
+      <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+        <h4 className="font-black text-gray-900 mb-5 flex items-center gap-2">
+          <HelpCircle size={22} className="text-purple-600" />
+          How It Works
+        </h4>
+        <div className="space-y-3">
+          <div className="flex gap-4">
+            <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">1</span>
+            </div>
+            <div>
+              <p className="font-bold text-gray-900 text-sm">Fill Your Details</p>
+              <p className="text-xs text-gray-600">Enter your name, phone, and request type</p>
+            </div>
           </div>
-          <div className="flex-1">
-            <h4 className="font-bold text-gray-900 mb-0.5">Telegram</h4>
-            <p className="text-xs text-gray-500">Paste message → Open chat</p>
+          <div className="flex gap-4">
+            <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">2</span>
+            </div>
+            <div>
+              <p className="font-bold text-gray-900 text-sm">Click & Copy</p>
+              <p className="text-xs text-gray-600">Tap the button to copy and open Telegram</p>
+            </div>
           </div>
-          <div className="text-blue-600 group-hover:text-blue-700 transition">
-            <Send size={20} />
+          <div className="flex gap-4">
+            <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">3</span>
+            </div>
+            <div>
+              <p className="font-bold text-gray-900 text-sm">Paste & Send</p>
+              <p className="text-xs text-gray-600">Paste your message and get instant support</p>
+            </div>
           </div>
-        </a>
-
-        {/* WhatsApp */}
-        <a
-          href={whatsappUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center p-5 bg-white rounded-2xl border border-gray-200 hover:border-green-400 hover:shadow-lg active:scale-95 transition-all shadow-sm group cursor-pointer"
-        >
-          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4 group-hover:bg-green-200 transition">
-            <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.272-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.67-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.076 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421-7.403h-.004c-1.052 0-2.081.405-2.84 1.12-.78.725-1.215 1.708-1.215 2.748 0 1.486.772 2.934 2.122 3.791 1.075.67 2.631 1.123 4.001 1.123h.004c2.176 0 4.236-1.41 5.115-3.44.559-1.331.665-2.432.318-3.519-.464-1.402-1.823-2.777-3.588-3.289-.52-.15-1.061-.226-1.629-.226 1.326-1.26 2.08-3.023 2.08-4.99 0-.268-.011-.533-.032-.795 1.326 1.26 2.08 3.023 2.08 4.99 0 .268.011.533.032.795-1.326-1.26-2.08-3.023-2.08-4.99 0-1.967.754-3.73 2.08-4.99-.021.262-.032.527-.032.795 0 1.967.754 3.73 2.08 4.99-1.326 1.26-2.08 3.023-2.08 4.99 0 .268.011.533.032.795z" />
-            </svg>
-          </div>
-          <div className="flex-1">
-            <h4 className="font-bold text-gray-900 mb-0.5">WhatsApp</h4>
-            <p className="text-xs text-gray-500">Paste message → Send directly</p>
-          </div>
-          <div className="text-green-600 group-hover:text-green-700 transition">
-            <Send size={20} />
-          </div>
-        </a>
-      </div>
-
-      {/* Info Section */}
-      <div className="bg-green-50 border border-green-200 rounded-2xl p-4">
-        <h4 className="font-bold text-green-900 mb-2 text-sm">⚡ How It Works:</h4>
-        <ul className="text-xs text-green-800 space-y-1">
-          <li>✓ Fill in your details above</li>
-          <li>✓ Select the profile you're interested in</li>
-          <li>✓ Copy your pre-filled message</li>
-          <li>✓ Paste it to Telegram or WhatsApp</li>
-          <li>✓ Our team matches you instantly!</li>
-        </ul>
+        </div>
       </div>
     </div>
   );

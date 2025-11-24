@@ -13,7 +13,9 @@ export const ChoosePage: React.FC = () => {
        <div className="sticky top-0 z-40 bg-white shadow-sm flex items-center justify-between px-4 py-3">
         <h1 className="text-xl font-bold mx-auto text-gray-900">Discover</h1>
         <div className="absolute right-4 flex space-x-3">
-             <Grid size={22} className="text-primary cursor-pointer" />
+             <button type="button" onClick={() => console.log('Grid view toggle coming soon')} className="p-1 rounded hover:bg-gray-100 transition">
+               <Grid size={22} className="text-primary cursor-pointer" />
+             </button>
         </div>
       </div>
 
@@ -44,7 +46,15 @@ export const ChoosePage: React.FC = () => {
                 <div key={user.id} className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 group cursor-pointer" onClick={() => navigate(`/user/${user.id}`)}>
                     {/* Image Area */}
                     <div className="aspect-[4/5] relative">
-                        <img src={user.images[0]} alt={user.name} className="w-full h-full object-cover" />
+                        <img 
+                            src={user.images[0]} 
+                            alt={user.name} 
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=ff6b6b&color=fff&size=200&font-size=0.5`;
+                            }}
+                        />
                         {user.isVip && (
                              <div className="absolute top-2 left-2 bg-gradient-to-r from-amber-400 to-amber-500 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow-sm">VIP</div>
                         )}
@@ -63,7 +73,7 @@ export const ChoosePage: React.FC = () => {
                             <MapPin size={10} className="mr-1" />
                             {user.residence}
                         </div>
-                        <button className="w-full mt-3 bg-gray-50 hover:bg-gray-100 text-gray-900 text-xs font-bold py-2 rounded-lg transition-colors border border-gray-200">
+                        <button type="button" onClick={() => navigate(`/user/${user.id}`)} className="w-full mt-3 bg-gray-50 hover:bg-gray-100 text-gray-900 text-xs font-bold py-2 rounded-lg transition-colors border border-gray-200">
                             View Profile
                         </button>
                     </div>
