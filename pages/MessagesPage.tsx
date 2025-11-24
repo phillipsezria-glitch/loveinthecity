@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { MessageCircle, Send, Copy, Check, Zap, Clock, Shield, MessageSquare, ChevronRight, Heart, Sparkles, AlertCircle, HelpCircle, Lock, ChevronLeft } from 'lucide-react';
 import { MOCK_USERS } from '../constants';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { storage } from '../utils/localStorage';
+import { socialLinks } from '../utils/socialLinks';
 
 interface UserProfile {
   name: string;
@@ -13,7 +14,7 @@ interface UserProfile {
 
 export const MessagesPage: React.FC = () => {
   const navigate = useNavigate();
-  const telegramUrl = 'https://t.me/findlovenow';
+  const telegramUrl = socialLinks.telegramSupport;
   const [searchParams] = useSearchParams();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MOCK_USERS } from '../constants';
-import { Phone, RefreshCw, Video, Lock, ShieldCheck, FileText, Bell, LogOut, ChevronRight, MapPin, Calendar, User } from 'lucide-react';
-import { generateTelegramLink, generateServiceMessage } from '../utils/contactLinks';
+import { Heart, Phone, Settings, Star, Shield, LogOut, ChevronRight, Video, Lock, FileText, Bell, HelpCircle } from 'lucide-react';
 import { storage } from '../utils/localStorage';
+import { socialLinks, generateTelegramLink } from '../utils/socialLinks';
 
 interface MinePageProps {
     onLogout: () => void;
@@ -83,14 +82,14 @@ export const MinePage: React.FC<MinePageProps> = ({ onLogout }) => {
                 {[
                     { icon: Video, label: 'Private Videos', color: 'text-pink-500', bg: 'bg-pink-50', service: 'support' },
                     { icon: Lock, label: 'Login Password', color: 'text-blue-500', bg: 'bg-blue-50', service: 'password' },
-                    { icon: ShieldCheck, label: 'Payment PIN', color: 'text-purple-500', bg: 'bg-purple-50', service: 'pin' },
+                    { icon: Shield, label: 'Payment PIN', color: 'text-purple-500', bg: 'bg-purple-50', service: 'pin' },
                     { icon: FileText, label: 'Funding Details', color: 'text-orange-500', bg: 'bg-orange-50', service: 'funding' },
                     { icon: Bell, label: 'Announcements', color: 'text-yellow-500', bg: 'bg-yellow-50', service: 'announcement' },
                     { icon: Phone, label: 'Support 24/7', color: 'text-green-500', bg: 'bg-green-50', service: 'support' },
                 ].map((item, i) => (
                     <a 
                         key={i} 
-                        href={generateTelegramLink(generateServiceMessage(item.service))}
+                        href={socialLinks.telegramSupport}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex flex-col items-center justify-center space-y-2 cursor-pointer group"

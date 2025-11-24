@@ -14,7 +14,12 @@ export default defineConfig(({ mode }) => {
       ],
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
+        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+        // Make social links available during build
+        'import.meta.env.VITE_TELEGRAM_URL': JSON.stringify(process.env.VITE_TELEGRAM_URL),
+        'import.meta.env.VITE_TELEGRAM_SUPPORT': JSON.stringify(process.env.VITE_TELEGRAM_SUPPORT),
+        'import.meta.env.VITE_WHATSAPP_URL': JSON.stringify(process.env.VITE_WHATSAPP_URL),
+        'import.meta.env.VITE_WHATSAPP_SUPPORT': JSON.stringify(process.env.VITE_WHATSAPP_SUPPORT),
       },
       resolve: {
         alias: {
